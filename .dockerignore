@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log*
+.git
+.env*
+coverage
+.nyc_output
+README.md
+.vscode
+.idea
+*.test.ts
+*.spec.ts
