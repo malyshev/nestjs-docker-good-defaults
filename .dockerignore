@@ -1,11 +1,48 @@
-node_modules
+# compiled output
+/dist
+/node_modules
+
+# Logs
+logs
+*.log
 npm-debug.log*
-.git
-.env*
-coverage
-.nyc_output
-README.md
-.vscode
-.idea
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+/coverage
+/.nyc_output
 *.test.ts
 *.spec.ts
+
+# IDEs and editors
+.idea
+.project
+.vscode
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# misc
+tmp
+.cache
+.github
+.circle
+.circleci
+.npmrc
+.husky
+.travis.yml
+.env*
+*.md
+.git/
+.gitignore
+Jenkinsfile
+docker-compose*.yml
