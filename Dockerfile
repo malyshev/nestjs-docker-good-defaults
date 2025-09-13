@@ -110,7 +110,6 @@ WORKDIR /opt/app
 #  - package*.json (for npm scripts or metadata)
 COPY --from=build /opt/app/dist ./dist
 COPY --from=build /opt/app/node_modules ./node_modules
-COPY --from=build /opt/app/package*.json ./
 
 # Copy custom healthcheck script into a standard location (/usr/local/bin).
 # Make it executable so it can be run directly as "healthcheck".
@@ -126,17 +125,19 @@ RUN chmod +x /usr/local/bin/healthcheck
 # Everything else can be removed to reduce image size and attack surface.
 #
 # Security rationale:
-# 1. Removing npm binary prevents anyone from installing new packages inside the container.
-# 2. Removing package.json and package-lock.json prevents leaking dependency information,
-#    version details, or potential sensitive metadata.
-# 3. Smaller attack surface: fewer binaries and config files reduce potential vulnerabilities.
+# 1. Removing package managers (npm, yarn) prevents installing new packages inside the container.
+# 2. Removing package.json/yarn.lock/package-lock.json avoids leaking dependency metadata.
+# 3. Smaller attack surface: fewer binaries and configs reduce potential vulnerabilities.
 #
-# Note: Only do this if you do NOT need to run npm scripts in production.
+# Note: Only do this if you do NOT need to run npm/yarn scripts in production.
 RUN rm -rf /opt/app/package*.json \
+           /opt/app/yarn*.lock \
            /opt/app/npm* \
            /usr/local/lib/node_modules/npm \
            /usr/local/bin/npm \
-           /usr/local/bin/npx
+           /usr/local/bin/npx \
+           /usr/local/bin/yarn \
+           /usr/local/bin/yarnpkg
 
 # Explicitly switch to the non-root user "node".
 # The official Node.js image already provides this user, but setting it here
