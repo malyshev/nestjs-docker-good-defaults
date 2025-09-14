@@ -27,27 +27,30 @@ overengineering.
 
 ## What's Inside
 
-### Docker & Containerization
+This template provides two main components that work together to create a production-ready NestJS application:
+
+### 🐳 Part 1: NestJS + Docker Baseline
+
+**Production-ready containerization with security and performance best practices:**
 
 - **Multi-stage Dockerfile** → build stage with all dependencies, runtime stage with only what's needed
 - **External healthcheck script** for container health monitoring
 - **Security hardening** with non-root user, minimal attack surface, and cleanup procedures
 - **Build arguments** for Node version, version metadata, and build date customization
+- **Graceful shutdown** with proper signal handling
+- **Optimized for production** with minimal attack surface and reproducible builds
 
-### Code Quality & Development Tools
+### 🛠️ Part 2: Code Quality & Development Tools
+
+**Enterprise-grade development workflow that balances strictness with developer experience:**
 
 - **ESLint configuration** with TypeScript rules, production vs test environment handling
 - **Prettier formatting** with TypeScript-specific indentation (4 spaces) and 120-character line length
 - **Husky Git hooks** for pre-commit linting and pre-push coverage validation
 - **lint-staged** for automated code quality checks on staged files only
 - **Coverage thresholds** (80%) enforced in Jest, pre-push hooks, and CI pipeline
-
-### CI/CD Pipeline
-
-- **GitHub Actions workflow** with branch-specific CI strategies
-- **Feature branch CI** → lightweight checks (lint + build) for fast feedback
-- **Main branch CI** → comprehensive testing with coverage reports and security audits
-- **Automated quality gates** preventing low-quality code from reaching production
+- **Unit test isolation** with proper mocking and test structure
+- **GitHub Actions CI workflow** with branch-specific strategies for automated quality gates
 
 ## Usage
 
@@ -213,10 +216,26 @@ out of the box.
 **Features:** TypeScript-specific formatting, branch-specific CI strategies, security audits  
 **Verdict:** Enterprise-grade development workflow with automated quality gates
 
-## 📖 Related Article
+## 📖 Related Articles
 
-This repository is explained in detail in the following article:
+### 🐳 Docker & Containerization
 
-➡️ [Production-Ready Docker for NestJS: Good Defaults That Actually Work](https://medium.com/javascript-in-plain-english/production-ready-docker-for-nestjs-good-defaults-that-actually-work-0ec57d994e64)
+**Production-Ready Docker for NestJS: Good Defaults That Actually Work**
+➡️ [Read the full article](https://medium.com/javascript-in-plain-english/production-ready-docker-for-nestjs-good-defaults-that-actually-work-0ec57d994e64)
 
-The article walks through the Dockerfile step by step and explains the reasoning behind each decision (multi-stage builds, non-root runtime, reproducible installs, health checks, etc.).
+This article walks through the Dockerfile step by step and explains the reasoning behind each decision (multi-stage builds, non-root runtime, reproducible installs, health checks, etc.).
+
+### 🛠️ Code Quality & Developer Experience
+
+**Code Quality & Developer Experience in NestJS: How Not to Kill Your Team**
+➡️ [Read the full article](https://medium.com/javascript-in-plain-english/code-quality-developer-experience-in-nestjs-how-not-to-kill-your-team-2c434f790f44)
+
+This article explains the philosophy behind the code quality setup in this template. It covers why developer experience matters more than strict rules, how to balance code quality with team productivity, and the practical implementation of ESLint, Prettier, Husky, and CI/CD integration.
+
+**Key insights from the article:**
+
+- Why code quality without DX is a treadmill that burns out teams
+- How to enforce practical rules that matter, not style snobbery
+- The importance of team-wide synchronization and onboarding
+- Balanced TypeScript rules for production vs test environments
+- Automated quality gates that don't slow down development
