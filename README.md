@@ -304,10 +304,9 @@ This article walks through the Dockerfile step by step and explains the reasonin
 
 This article explains the philosophy behind the code quality setup in this template. It covers why developer experience matters more than strict rules, how to balance code quality with team productivity, and the practical implementation of ESLint, Prettier, Husky, and CI/CD integration.
 
-**Key insights from the article:**
+### 🔒 Security & Production Defaults
 
-- Why code quality without DX is a treadmill that burns out teams
-- How to enforce practical rules that matter, not style snobbery
-- The importance of team-wide synchronization and onboarding
-- Balanced TypeScript rules for production vs test environments
-- Automated quality gates that don't slow down development
+**Secure Your NestJS Application: Production-Ready Defaults for Safety and DX**
+➡️ [Read the full article](https://medium.com/javascript-in-plain-english/secure-your-nestjs-application-production-ready-defaults-for-safety-and-dx-1b6896b1ce74)
+
+This article covers the security implementations in this template: Helmet configuration, CORS setup, rate limiting, and how to balance security with developer experience. It explains why certain security decisions were made and how to avoid common pitfalls.
