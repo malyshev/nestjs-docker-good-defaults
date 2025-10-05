@@ -38,7 +38,7 @@ Tasks:
 Tasks:
 
 - [x] Helmet middleware – Set security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, etc.)
-- [ ] CORS configuration – Configure Cross-Origin Resource Sharing with environment-specific settings
+- [x] CORS configuration – Configure Cross-Origin Resource Sharing with environment-specific settings
 - [ ] Rate limiting – Implement request rate limiting to prevent abuse and DDoS attacks
 
 **Priority:** high; security is essential for production

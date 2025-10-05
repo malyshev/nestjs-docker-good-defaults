@@ -59,10 +59,25 @@ This template provides two main components that work together to create a produc
 - **Helmet middleware** with essential security headers for JSON APIs
 - **X-Frame-Options, X-Content-Type-Options, X-XSS-Protection** for basic security
 - **HSTS configuration** with proper HTTPS enforcement settings
+- **CORS configuration** with environment-specific origins and methods
 - **Security header testing** with comprehensive e2e test coverage
-- **Centralized configuration** in `src/config/helmet.config.ts` for easy customization
+- **Centralized configuration** in `src/config/helmet.config.ts` and [`src/config/cors.config.ts`](./src/config/cors.config.ts) for easy customization
 
 ## Usage
+
+### Environment Setup
+
+1. Copy the environment template:
+
+```shell
+cp .env-example .env
+```
+
+2. Adjust values in `.env` for your environment:
+   - `NODE_ENV`: Set to `production` for production deployments
+   - `PORT`: Application port (default: 3000)
+   - `ALLOWED_ORIGINS`: Comma-separated list of allowed domains for CORS (production only)
+   - `ALLOWED_METHODS`: Comma-separated list of allowed HTTP methods (optional)
 
 ### Docker Build & Run
 
@@ -201,7 +216,7 @@ Customize formatting in `.prettierrc`:
 }
 ```
 
-### Helmet Security Configuration
+### Security Configuration
 
 Security headers are configured in [`src/config/helmet.config.ts`](./src/config/helmet.config.ts) with essential protections:
 
@@ -212,7 +227,14 @@ Security headers are configured in [`src/config/helmet.config.ts`](./src/config/
 - **HSTS**: Enforces HTTPS in production (disabled in development)
 - **IE Download Options**: Prevents IE from executing downloads
 
-The configuration is environment-aware and can be customized for your specific security requirements.
+CORS is configured in [`src/config/cors.config.ts`](./src/config/cors.config.ts) with environment-specific settings:
+
+- **Development**: Allows common localhost ports for flexibility
+- **Production**: Restricts to specific domains via `ALLOWED_ORIGINS`
+- **Methods**: Configurable via `ALLOWED_METHODS` environment variable
+- **Headers**: Essential headers for API communication
+
+Both configurations are environment-aware and can be customized for your specific requirements.
 
 ### CI Workflow Customization
 
