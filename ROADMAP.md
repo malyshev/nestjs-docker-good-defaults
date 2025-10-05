@@ -9,9 +9,11 @@ Tasks:
 - [x] Standard NestJS project structure recognized (src/, dist/, test/) — inherited from NestJS CLI
 - [x] Production-ready Dockerfile integrated
 - [x] Dockerfile hardening (non-root, healthcheck, minimal image)
+- [x] Runtime cleanup (remove npm, package.json, devDependencies) – security hardening
 - [x] README added describing Docker usage and template purpose
 
 **Priority:** critical to start any project
+**Status:** ✅ COMPLETED
 
 ## Milestone 2: Code Quality & Linting
 
@@ -22,55 +24,49 @@ Tasks:
 - [x] Prettier for code formatting
 - [x] Husky + lint-staged for pre-commit checks
 - [x] CI integration for linting (GitHub Actions)
+- [x] Coverage thresholds (80%) enforced in Jest, pre-push hooks, and CI
+- [x] Unit test isolation with proper mocking
+- [x] Strict TypeScript compiler options – strictNullChecks, forceConsistentCasingInFileNames, etc.
+- [x] Useful npm scripts (start:dev, build, lint, test, test:cov, format)
 
 **Priority:** high; affects maintainability and future development
+**Status:** ✅ COMPLETED
 
-## Milestone 3: Type Safety & Validation
+## Milestone 3: Security
 
-**Goal:** Ensure safe data handling and type correctness.
+**Goal:** Provide essential security defaults for production applications.
 Tasks:
 
-- [ ] Class-validator / class-transformer setup – enable DTO validation for controllers.
-- [ ] Global validation pipe – set up NestJS ValidationPipe in main.ts with whitelist: true and forbidNonWhitelisted: true.
-- [ ] Strict TypeScript compiler options – ensure strict: true in tsconfig.json, noImplicitAny, strictNullChecks, etc.
-- [ ] Optional runtime type guards – for complex service logic where DTO validation isn’t enough.
+- [x] Helmet middleware – Set security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, etc.)
+- [ ] CORS configuration – Configure Cross-Origin Resource Sharing with environment-specific settings
+- [ ] Rate limiting – Implement request rate limiting to prevent abuse and DDoS attacks
 
-**Priority:** important; TypeScript is core to NestJS
+**Priority:** high; security is essential for production
 
-## Milestone 4: Configuration Management
+## Milestone 4: Configuration & Validation
 
-**Goal:** Manage configuration and secrets safely and consistently.
+**Goal:** Manage configuration and validation consistently using class-validator/class-transformer patterns.
 Tasks:
 
+- [ ] Class-validator / class-transformer setup – enable DTO validation for controllers and configs
+- [ ] Global validation pipe – set up NestJS ValidationPipe in main.ts with whitelist: true and forbidNonWhitelisted: true
 - [ ] dotenv / env-sentinel integration
 - [ ] config / directory structure for different environments
-- [ ] Validation for missing or invalid environment variables
+- [ ] Configuration validation using class-validator decorators for environment variables
 
-**Priority:** medium; can be implemented alongside tests
+**Priority:** high; consistent validation approach across the application
 
-## Milestone 5: Security Defaults
-
-**Goal:** Provide basic security defaults for both app and container.
-Tasks:
-
-- [ ] Helmet, CORS, and rate-limiting middleware
-- [ ] Runtime cleanup (remove npm, package.json, devDependencies)
-
-**Priority:** high for production; integrate after foundations + code quality
-
-## Milestone 6: Developer Productivity & Automation
+## Milestone 5: Developer Productivity & Automation
 
 **Goal:** Make development faster and releases smoother.
 Tasks:
 
 - [ ] Automated releases
-- [ ] GitHub Actions CI/CD templates (build, lint, test, release)
-- [ ] Useful npm scripts (start:dev, build, lint, test, release)
 - [ ] Optional generators/CLI for creating modules/services
 
 **Priority:** lower at first; implement after core DX is stable
 
-## Milestone 7: Observability & Health
+## Milestone 6: Observability & Health
 
 **Goal:** Enhance health monitoring by adding NestJS health endpoint (external healthcheck script remains unchanged).
 Tasks:
@@ -82,9 +78,9 @@ Tasks:
 
 **Priority:** lower; basic healthcheck is enough initially
 
-## Milestone 8: Optional / Advanced Enhancements
+## Milestone 7: Optional / Advanced Enhancements
 
-**Goal:** Elevate template to “best-of-breed DX” level.
+**Goal:** Elevate template to "best-of-breed DX" level.
 Tasks:
 
 - [ ] Swagger/OpenAPI integration
