@@ -52,7 +52,7 @@ This template provides two main components that work together to create a produc
 - **Unit test isolation** with proper mocking and test structure
 - **GitHub Actions CI workflow** with branch-specific strategies for automated quality gates
 
-### 🔒 Part 3: Security Headers
+### 🔒 Part 3: Security & Rate Limiting
 
 **Production-ready security configuration with essential HTTP security headers:**
 
@@ -60,24 +60,15 @@ This template provides two main components that work together to create a produc
 - **X-Frame-Options, X-Content-Type-Options, X-XSS-Protection** for basic security
 - **HSTS configuration** with proper HTTPS enforcement settings
 - **CORS configuration** with environment-specific origins and methods
+- **Rate limiting** with configurable throttling and multiple throttler support
 - **Security header testing** with comprehensive e2e test coverage
-- **Centralized configuration** in `src/config/helmet.config.ts` and [`src/config/cors.config.ts`](./src/config/cors.config.ts) for easy customization
+- **Centralized configuration** in `src/config/helmet.config.ts`, [`src/config/cors.config.ts`](./src/config/cors.config.ts), and [`src/config/throttler.config.ts`](./src/config/throttler.config.ts) for easy customization
 
 ## Usage
 
 ### Environment Setup
 
-1. Copy the environment template:
-
-```shell
-cp .env-example .env
-```
-
-2. Adjust values in `.env` for your environment:
-   - `NODE_ENV`: Set to `production` for production deployments
-   - `PORT`: Application port (default: 3000)
-   - `ALLOWED_ORIGINS`: Comma-separated list of allowed domains for CORS (production only)
-   - `ALLOWED_METHODS`: Comma-separated list of allowed HTTP methods (optional)
+All security features work correctly in Docker with the default production settings. Use environment variables with Docker for customization (see Docker sections below).
 
 ### Docker Build & Run
 
@@ -112,6 +103,24 @@ docker build \
 
 ```shell
 docker run --rm -p 3000:3000 my-nest-service:latest
+```
+
+#### Run with Custom Environment Variables
+
+```shell
+# Override specific environment variables
+docker run --rm -p 3000:3000 \
+  -e ALLOWED_ORIGINS="https://yourdomain.com,https://app.yourdomain.com" \
+  -e THROTTLE_LIMIT=200 \
+  -e THROTTLE_TTL=30000 \
+  my-nest-service:latest
+```
+
+#### Run with Environment File
+
+```shell
+# Use a .env file for environment variables
+docker run --rm -p 3000:3000 --env-file .env my-nest-service:latest
 ```
 
 #### Health Check
@@ -234,7 +243,15 @@ CORS is configured in [`src/config/cors.config.ts`](./src/config/cors.config.ts)
 - **Methods**: Configurable via `ALLOWED_METHODS` environment variable
 - **Headers**: Essential headers for API communication
 
-Both configurations are environment-aware and can be customized for your specific requirements.
+Rate limiting is configured in [`src/config/throttler.config.ts`](./src/config/throttler.config.ts) with comprehensive options:
+
+- **Default throttling**: 100 requests per minute (configurable via environment variables)
+- **Multiple throttlers**: Support for different rate limits per endpoint type
+- **Security-first**: All endpoints are rate limited for DDoS protection
+- **Environment-aware**: Throttling enabled in production, disabled in development/test environments
+- **Storage options**: In-memory by default, Redis support for production scaling
+
+All configurations are environment-aware and can be customized for your specific requirements.
 
 ### CI Workflow Customization
 
