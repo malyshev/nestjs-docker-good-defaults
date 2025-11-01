@@ -51,5 +51,13 @@ export const developmentConfig = (configService: ConfigService): Partial<AppConf
             // Only change if you're using HTTPS locally and want to test HSTS behavior
             hsts: false, // Disable HSTS in development
         },
+        logging: {
+            // Development logging - enable pretty printing and debug level
+            // Pretty printing makes logs readable in terminal during development
+            // Debug level shows more details for troubleshooting
+            // Override via LOG_LEVEL and LOG_PRETTY environment variables if needed
+            level: configService.get<string>('LOG_LEVEL', 'debug'),
+            prettyPrint: configService.get<boolean>('LOG_PRETTY', true),
+        },
     } as Partial<AppConfig>;
 };

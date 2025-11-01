@@ -75,4 +75,15 @@ export interface AppConfig {
               }
             | false;
     };
+
+    /**
+     * Pino logging configuration
+     * Base logging configuration - HTTP request logging can be added via interceptor later
+     */
+    logging: {
+        /** Log level (trace, debug, info, warn, error, fatal) */
+        level: string;
+        /** Enable pretty printing (development only - use structured JSON in production) */
+        prettyPrint: boolean;
+    };
 }

@@ -54,6 +54,7 @@ export const configuration = (configService?: ConfigService): Record<string, unk
         cors: { ...baseConfig.cors, ...envConfig.cors },
         throttle: { ...baseConfig.throttle, ...envConfig.throttle },
         helmet: { ...baseConfig.helmet, ...envConfig.helmet },
+        logging: { ...baseConfig.logging, ...envConfig.logging },
     };
 
     // Cast to Record<string, unknown> for NestJS ConfigModule compatibility

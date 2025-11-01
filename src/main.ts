@@ -1,11 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import type { AppConfig } from './config/types/configuration.interface';
 
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create(AppModule);
+    // Create app with buffered logs - logs are buffered until logger is ready
+    const app = await NestFactory.create(AppModule, {
+        bufferLogs: true, // Buffer logs until Pino logger is ready
+    });
+
+    // Use Pino logger - replaces default NestJS logger
+    app.useLogger(app.get(Logger));
 
     // Get ConfigService instance
     const configService = app.get(ConfigService);
@@ -23,6 +30,7 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((error: Error) => {
+    // Use console.error as fallback if logger initialization fails
     console.error('Failed to start application:', error);
     process.exit(1);
 });

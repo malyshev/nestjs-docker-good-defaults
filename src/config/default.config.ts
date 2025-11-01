@@ -175,4 +175,23 @@ export const defaultConfig = (configService: ConfigService): AppConfig => ({
                   }
                 : false, // Disabled in development to avoid localhost HTTPS issues
     },
+    logging: {
+        // Log level - determines which log messages are displayed
+        // Levels: trace < debug < info < warn < error < fatal
+        // Default: 'info' - shows info, warn, error, fatal (hides trace, debug)
+        // Override via LOG_LEVEL environment variable
+        // Development: Use 'debug' to see more details during development
+        // Production: Use 'info' or 'warn' to reduce log volume
+        // Example: LOG_LEVEL=debug npm run start:dev
+        level: configService.get<string>('LOG_LEVEL', 'info'),
+
+        // Pretty printing - formats logs for human readability
+        // Default: false (structured JSON) - better for production log aggregation
+        // Development: Enable pretty printing for easier reading in terminal
+        // Production: Disable pretty printing - use structured JSON for log parsing (Promtail/Loki compatible)
+        // Pretty printing adds overhead - only use in development
+        // Override via LOG_PRETTY environment variable (true/false)
+        // Note: Structured JSON in production is compatible with Grafana Loki/Promtail stack
+        prettyPrint: configService.get<boolean>('LOG_PRETTY', false),
+    },
 });

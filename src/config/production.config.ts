@@ -81,5 +81,14 @@ export const productionConfig = (configService: ConfigService): Partial<AppConfi
                 preload: true,
             },
         },
+        logging: {
+            // Production logging - structured JSON, info level
+            // Disable pretty printing - use structured JSON for log aggregation (Promtail/Loki compatible)
+            // Info level shows standard operational messages without debug noise
+            // Structured JSON logs work seamlessly with Grafana Loki/Promtail stack
+            // Override via LOG_LEVEL and LOG_PRETTY environment variables if needed
+            level: configService.get<string>('LOG_LEVEL', 'info'),
+            prettyPrint: configService.get<boolean>('LOG_PRETTY', false),
+        },
     } as Partial<AppConfig>;
 };
