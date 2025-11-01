@@ -42,41 +42,43 @@ Tasks:
 - [x] Rate limiting – Implement request rate limiting to prevent abuse and DDoS attacks
 
 **Priority:** high; security is essential for production
+**Status:** ✅ COMPLETED
 
-## Milestone 4: Configuration & Validation
+## Milestone 4: Configuration & Logging
 
-**Goal:** Manage configuration and validation consistently using class-validator/class-transformer patterns.
+**Goal:** Manage configuration and logging consistently across environments.
 Tasks:
 
-- [ ] Class-validator / class-transformer setup – enable DTO validation for controllers and configs
+- [ ] @nestjs/config integration – environment variable management
+- [ ] Config directory structure – organize configuration for different environments (dev, test, prod)
+- [ ] Logging setup (pino) with structured formatting
+- [ ] Logging configuration – log levels, formats, and transports for different environments
+- [ ] Request logging middleware – log HTTP requests and responses
+
+**Priority:** high; configuration and logging are essential for production applications
+
+## Milestone 5: Validation
+
+**Goal:** Enable request validation using class-validator/class-transformer patterns.
+Tasks:
+
+- [ ] Class-validator / class-transformer setup – enable DTO validation for controllers
 - [ ] Global validation pipe – set up NestJS ValidationPipe in main.ts with whitelist: true and forbidNonWhitelisted: true
-- [ ] dotenv / env-sentinel integration
-- [ ] config / directory structure for different environments
 - [ ] Configuration validation using class-validator decorators for environment variables
 
 **Priority:** high; consistent validation approach across the application
 
-## Milestone 5: Developer Productivity & Automation
+## Milestone 6: Observability & Automation
 
-**Goal:** Make development faster and releases smoother.
-Tasks:
-
-- [ ] Automated releases
-- [ ] Optional generators/CLI for creating modules/services
-
-**Priority:** lower at first; implement after core DX is stable
-
-## Milestone 6: Observability & Health
-
-**Goal:** Enhance health monitoring by adding NestJS health endpoint (external healthcheck script remains unchanged).
+**Goal:** Enhance observability with health monitoring and automate releases.
 Tasks:
 
 - [ ] Install and configure @nestjs/terminus for proper health endpoints
 - [ ] Create /health endpoint with database, Redis, and service checks
-- [ ] Logging setup (winston/pino) with basic formatting
 - [ ] Hooks for external monitoring tools
+- [ ] Automated releases
 
-**Priority:** lower; basic healthcheck is enough initially
+**Priority:** lower; implement after core DX is stable
 
 ## Milestone 7: Optional / Advanced Enhancements
 
@@ -85,6 +87,5 @@ Tasks:
 
 - [ ] Swagger/OpenAPI integration
 - [ ] Advanced observability (metrics, Sentry, LogRocket)
-- [ ] Prebuilt boilerplate modules (Auth, Users, Config)
 
 **Priority:** optional; after stable release of core milestones
