@@ -1,0 +1,151 @@
+{
+  "id": null,
+  "uid": "app-logs",
+  "title": "Application Logs",
+  "tags": ["application", "logs", "nestjs"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Log Levels Overview",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 3 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"app\"} | json | level=30 [5m]))",
+          "legendFormat": "Info",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({service=\"app\"} | json | level=40 [5m]))",
+          "legendFormat": "Warn",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(count_over_time({service=\"app\"} | json | level=50 [5m]))",
+          "legendFormat": "Error",
+          "refId": "C"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 1, "color": "yellow" },
+              { "value": 10, "color": "red" }
+            ]
+          },
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "🔴 Errors & Warnings",
+      "gridPos": { "x": 0, "y": 3, "w": 24, "h": 8 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{service=\"app\"} | json | level>=40 ${search:raw}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableDetailsFromLogContext": true
+      }
+    },
+    {
+      "id": 3,
+      "type": "logs",
+      "title": "All Application Logs",
+      "gridPos": { "x": 0, "y": 11, "w": 24, "h": 15 },
+      "datasource": { "type": "loki", "uid": "Loki" },
+      "targets": [
+        {
+          "expr": "{service=\"app\"} | json | level=~\"$logLevel\" ${search:raw}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": true,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true,
+        "enableDetailsFromLogContext": true
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "logLevel",
+        "type": "custom",
+        "label": "Log Level",
+        "query": "Info : 30, Warn : 40, Error : 50",
+        "includeAll": true,
+        "multi": true,
+        "allValue": "30|40|50",
+        "current": {
+          "selected": true,
+          "text": ["All"],
+          "value": ["$__all"]
+        },
+        "options": [
+          { "selected": false, "text": "All", "value": "$__all" },
+          { "selected": false, "text": "Info (30)", "value": "30" },
+          { "selected": false, "text": "Warn (40)", "value": "40" },
+          { "selected": false, "text": "Error (50)", "value": "50" }
+        ]
+      },
+      {
+        "name": "search",
+        "type": "textbox",
+        "label": "🔍 Search",
+        "description": "Search logs (LogQL: |= \"text\" for exact, |~ \"pattern\" for regex). Examples: |= \"error\", |~ \"(?i)hello\"",
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "query": "",
+        "skipUrlSync": false
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": []
+}

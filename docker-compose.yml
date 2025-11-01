@@ -1,0 +1,81 @@
+services:
+  # NestJS application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_PRETTY=false # Structured JSON for Loki
+      - LOG_LEVEL=info
+      - NO_COLOR=1 # Disable color codes in output
+    ports:
+      - '3000:3000'
+    networks:
+      - monitoring
+    # Write logs to stdout (Pino does this by default)
+    # Promtail will read them from the Docker socket
+    labels:
+      - 'promtail.scrape=true' # Tell Promtail to collect logs from this container
+
+  # Loki - log aggregation and indexing
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: loki
+    ports:
+      - '3100:3100'
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Promtail - log collection agent
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: promtail
+    volumes:
+      - ./docker/promtail/config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Mount app logs directory if logging to files
+      # - ./logs:/var/log/app:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Grafana - visualization
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: grafana
+    ports:
+      - '3001:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/grafana-datasource.yml:/etc/grafana/provisioning/datasources/loki.yml:ro
+      - ./docker/grafana/grafana-dashboard-provider.yml:/etc/grafana/provisioning/dashboards/default.yml:ro
+      - ./docker/grafana/grafana-dashboard-app-logs.json:/etc/grafana/provisioning/dashboards/app-logs.json:ro
+    depends_on:
+      - loki
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+volumes:
+  loki-data:
+  grafana-data:
+
+networks:
+  monitoring:
+    driver: bridge

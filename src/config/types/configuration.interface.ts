@@ -87,3 +87,22 @@ export interface AppConfig {
         prettyPrint: boolean;
     };
 }
+
+/**
+ * Pino HTTP configuration interface
+ * Used for configuring nestjs-pino LoggerModule
+ */
+export interface PinoHttpConfig {
+    /** Log level */
+    level: string;
+    /** Disable automatic HTTP request logging */
+    autoLogging: boolean;
+    /** Optional transport configuration for pretty printing */
+    transport?: {
+        target: string;
+        options: {
+            singleLine: boolean;
+            colorize: boolean;
+        };
+    };
+}

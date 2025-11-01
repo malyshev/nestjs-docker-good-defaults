@@ -192,6 +192,8 @@ export const defaultConfig = (configService: ConfigService): AppConfig => ({
         // Pretty printing adds overhead - only use in development
         // Override via LOG_PRETTY environment variable (true/false)
         // Note: Structured JSON in production is compatible with Grafana Loki/Promtail stack
-        prettyPrint: configService.get<boolean>('LOG_PRETTY', false),
+        // Explicitly convert string to boolean - env vars are strings ("true"/"false")
+        // ConfigService.get<boolean> doesn't always handle string conversion correctly
+        prettyPrint: configService.get<string>('LOG_PRETTY', 'false') === 'true',
     },
 });

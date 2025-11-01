@@ -101,7 +101,7 @@ CORS is configured with environment-specific settings:
 
 - **Development**: Allows common localhost ports for flexibility
 - **Production**: Restricts to specific domains via `ALLOWED_ORIGINS` environment variable
-- **Methods**: Configurable via `ALLOWED_METHODS` environment variable
+- **Credentials**: Configurable via `CORS_CREDENTIALS` environment variable (default: `false`)
 - **Headers**: Essential headers for API communication
 
 Configure in `src/config/development.config.ts` and `src/config/production.config.ts`. Each file includes comments explaining why values are set this way.
@@ -169,20 +169,23 @@ logging: {
 Using the logger in your services:
 
 ```typescript
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { Logger } from 'nestjs-pino';
 
 @Injectable()
 export class MyService {
-  private readonly logger = new Logger(MyService.name);
+  constructor(private readonly logger: Logger) {}
 
   doSomething() {
-    this.logger.log('Starting operation');
-    this.logger.debug('Debug information');
-    this.logger.warn('Warning message');
-    this.logger.error('Error occurred', error.stack);
+    this.logger.log('Starting operation', { context: MyService.name });
+    this.logger.debug('Debug information', { context: MyService.name });
+    this.logger.warn('Warning message', { context: MyService.name });
+    this.logger.error('Error occurred', { context: MyService.name, error: error.message });
   }
 }
 ```
+
+**Note**: Always include `context` in your log messages for better traceability. See [Logging Guide](./LOGGING.md) for more details on using Pino.
 
 **Grafana Stack Integration**: Production logs use structured JSON format, making them compatible with:
 
@@ -198,15 +201,18 @@ See [`.env-example`](../.env-example) for all available environment variables.
 
 Key variables:
 
-- `NODE_ENV` - Application environment
-- `PORT` - Application port
-- `APP_NAME` - Application name
-- `ALLOWED_ORIGINS` - CORS origins (comma-separated)
-- `ALLOWED_METHODS` - CORS methods (comma-separated)
-- `THROTTLE_TTL` - Rate limit time window (milliseconds)
-- `THROTTLE_LIMIT` - Maximum requests per time window
+- `NODE_ENV` - Application environment (development, production, test)
+- `PORT` - Application port (default: 3000)
+- `APP_NAME` - Application name (default: 'nestjs-app')
+- `ALLOWED_ORIGINS` - CORS origins (comma-separated, required in production)
+- `CORS_CREDENTIALS` - Allow credentials in CORS requests (true/false, default: false)
+- `THROTTLE_TTL` - Rate limit time window in milliseconds (default: 60000 = 1 minute)
+- `THROTTLE_LIMIT` - Maximum requests per time window (default: 100)
 - `LOG_LEVEL` - Logging level (trace, debug, info, warn, error, fatal)
-- `LOG_PRETTY` - Enable pretty printing (true/false)
+  - Default: 'info' (development: 'debug', production: 'info')
+- `LOG_PRETTY` - Enable pretty printing for human-readable logs (true/false)
+  - Default: 'false' (development: 'true', production: 'false')
+  - Must be 'false' in production for structured JSON (required for Grafana Loki/Promtail)
 
 ### Environment-Specific Configuration
 

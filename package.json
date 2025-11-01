@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -31,7 +31,6 @@
     "helmet": "^8.1.0",
     "nestjs-pino": "^4.4.1",
     "pino": "^9.14.0",
-    "pino-pretty": "^13.1.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },
@@ -64,7 +63,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.43.0"
+    "typescript-eslint": "^8.43.0",
+    "pino-pretty": "^13.1.2"
   },
   "jest": {
     "moduleFileExtensions": [

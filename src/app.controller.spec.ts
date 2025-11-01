@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -14,6 +15,15 @@ describe('AppController', () => {
                     provide: AppService,
                     useValue: {
                         getHello: jest.fn(),
+                    },
+                },
+                {
+                    provide: Logger,
+                    useValue: {
+                        log: jest.fn(),
+                        debug: jest.fn(),
+                        warn: jest.fn(),
+                        error: jest.fn(),
                     },
                 },
             ],

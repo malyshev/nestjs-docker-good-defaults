@@ -1,0 +1,62 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Discover docker containers automatically
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    # Only collect from containers with the label "promtail.scrape=true"
+    relabel_configs:
+      # Filter: only scrape containers with promtail.scrape=true label
+      - source_labels: [__meta_docker_container_label_promtail_scrape]
+        regex: true
+        action: keep
+      # Set job label (required - ensures Loki gets at least one label)
+      - target_label: job
+        replacement: docker
+      # Extract container name (required label - Loki needs at least one label per stream)
+      # This will always be set, ensuring Loki gets at least one label
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(.*)'
+        target_label: container
+        replacement: '${1}'
+      # Extract service name from docker-compose label (will be "app" for our service)
+      - source_labels: [__meta_docker_container_label_com_docker_compose_service]
+        target_label: service
+      # Keep other useful labels
+      - source_labels: [__meta_docker_container_image]
+        target_label: image
+      - source_labels: [__meta_docker_container_log_stream]
+        target_label: stream
+
+    # Decode JSON logs (e.g. Pino)
+    pipeline_stages:
+      - docker: {}
+      # Ensure job label is preserved (safety net)
+      - static_labels:
+          job: docker
+      # Parse JSON logs to extract level for labeling
+      # Grafana will parse full JSON via LogQL | json
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            time: time
+          drop_malformed: false # Keep logs even if JSON parsing fails
+      # Add level as label for filtering in Grafana (30=info, 40=warn, 50=error)
+      - labels:
+          level:
+      # Use parsed timestamp if available, otherwise use log entry time
+      - timestamp:
+          source: time
+          format: RFC3339Nano

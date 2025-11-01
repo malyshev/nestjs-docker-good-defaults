@@ -1,10 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import helmet from 'helmet';
 import type { AppConfig } from '../src/config/types/configuration.interface';
+import { mockLogger } from './test-logger';
 
 describe('Security Features (e2e)', () => {
     let app: INestApplication;
@@ -12,7 +14,10 @@ describe('Security Features (e2e)', () => {
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
-        }).compile();
+        })
+            .overrideProvider(Logger)
+            .useValue(mockLogger)
+            .compile();
 
         app = moduleFixture.createNestApplication();
 
@@ -76,7 +81,10 @@ describe('Rate Limiting (Production Environment)', () => {
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
             imports: [AppModule],
-        }).compile();
+        })
+            .overrideProvider(Logger)
+            .useValue(mockLogger)
+            .compile();
 
         app = moduleFixture.createNestApplication();
 

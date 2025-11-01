@@ -65,6 +65,8 @@ RUN rm -rf node_modules
 
 # Reinstall only production dependencies.
 # --production ensures devDependencies are excluded.
+# The prepare script (husky || true) will skip gracefully if husky isn't installed.
+# Native modules will still build because their install scripts run normally.
 # npm cache clean --force reduces the final image size by clearing npm cache.
 RUN npm ci --production && npm cache clean --force
 

@@ -88,7 +88,9 @@ export const productionConfig = (configService: ConfigService): Partial<AppConfi
             // Structured JSON logs work seamlessly with Grafana Loki/Promtail stack
             // Override via LOG_LEVEL and LOG_PRETTY environment variables if needed
             level: configService.get<string>('LOG_LEVEL', 'info'),
-            prettyPrint: configService.get<boolean>('LOG_PRETTY', false),
+            // Explicitly convert string to boolean - env vars are strings ("true"/"false")
+            // ConfigService.get<boolean> doesn't always handle string conversion correctly
+            prettyPrint: configService.get<string>('LOG_PRETTY', 'false') === 'true',
         },
     } as Partial<AppConfig>;
 };

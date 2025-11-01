@@ -57,7 +57,10 @@ export const developmentConfig = (configService: ConfigService): Partial<AppConf
             // Debug level shows more details for troubleshooting
             // Override via LOG_LEVEL and LOG_PRETTY environment variables if needed
             level: configService.get<string>('LOG_LEVEL', 'debug'),
-            prettyPrint: configService.get<boolean>('LOG_PRETTY', true),
+            // Explicitly convert string to boolean - env vars are strings ("true"/"false")
+            // ConfigService.get<boolean> doesn't always handle string conversion correctly
+            // Default to true for development (pretty print enabled)
+            prettyPrint: configService.get<string>('LOG_PRETTY', 'true') === 'true',
         },
     } as Partial<AppConfig>;
 };

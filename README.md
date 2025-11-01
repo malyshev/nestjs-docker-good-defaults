@@ -83,6 +83,7 @@ See [docs/DOCKER.md](./docs/DOCKER.md) for detailed Docker usage.
 - **[Docker Usage](./docs/DOCKER.md)** - Docker build, run, and environment configuration
 - **[Configuration Guide](./docs/CONFIGURATION.md)** - All configuration options and customization
 - **[Development Workflow](./docs/DEVELOPMENT.md)** - Code quality, testing, and CI/CD
+- **[Logging](./docs/LOGGING.md)** - Pino logging configuration and Grafana stack setup
 
 ## Assessments
 
