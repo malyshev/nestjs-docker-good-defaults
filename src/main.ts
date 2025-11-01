@@ -1,17 +1,25 @@
 import { NestFactory } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { helmetConfig } from './config/helmet.config';
-import { corsConfig } from './config/cors.config';
 import helmet from 'helmet';
+import type { AppConfig } from './config/types/configuration.interface';
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule);
 
-    // Apply security middleware
+    // Get ConfigService instance
+    const configService = app.get(ConfigService);
+    const appConfig = configService.getOrThrow<AppConfig['app']>('app');
+    const corsConfig = configService.getOrThrow<AppConfig['cors']>('cors');
+    const helmetConfig = configService.getOrThrow<AppConfig['helmet']>('helmet');
+
+    // Apply security middleware - uses merged config via ConfigService
+    // Config is required - app will fail to start if missing (secure by default)
     app.use(helmet(helmetConfig));
     app.enableCors(corsConfig);
 
-    await app.listen(process.env.PORT ?? 3000);
+    // Start application on configured port
+    await app.listen(appConfig.port);
 }
 
 bootstrap().catch((error: Error) => {

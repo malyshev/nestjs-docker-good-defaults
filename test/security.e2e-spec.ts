@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import helmet from 'helmet';
-import { helmetConfig } from '../src/config/helmet.config';
-import { corsConfig } from '../src/config/cors.config';
+import type { AppConfig } from '../src/config/types/configuration.interface';
 
 describe('Security Features (e2e)', () => {
     let app: INestApplication;
@@ -15,8 +15,19 @@ describe('Security Features (e2e)', () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.use(helmet(helmetConfig));
-        app.enableCors(corsConfig);
+
+        // Apply security middleware using ConfigService (same as main.ts)
+        const configService = app.get(ConfigService);
+        const helmetConfig = configService.getOrThrow<AppConfig['helmet']>('helmet');
+        const corsConfig = configService.getOrThrow<AppConfig['cors']>('cors');
+
+        if (helmetConfig) {
+            app.use(helmet(helmetConfig));
+        }
+        if (corsConfig) {
+            app.enableCors(corsConfig);
+        }
+
         await app.init();
     });
 
@@ -40,25 +51,19 @@ describe('Security Features (e2e)', () => {
         expect(res.headers['access-control-expose-headers']).toBeDefined();
     });
 
-    it('should apply rate limiting in production', async () => {
-        // Set production environment before making request
-        const originalEnv = process.env.NODE_ENV;
-        process.env.NODE_ENV = 'production';
+    it('should disable HSTS in development', async () => {
+        const res = await request(app.getHttpServer()).get('/').expect(200);
 
-        try {
-            const res = await request(app.getHttpServer()).get('/').expect(200);
+        // HSTS should be disabled in development
+        expect(res.headers['strict-transport-security']).toBeUndefined();
+    });
 
-            // Check that throttling headers are present in production
-            expect(res.headers['x-ratelimit-limit']).toBeDefined();
-            expect(res.headers['x-ratelimit-remaining']).toBeDefined();
+    it('should skip rate limiting in development', async () => {
+        const res = await request(app.getHttpServer()).get('/').expect(200);
 
-            // Verify the actual values match our config
-            expect(res.headers['x-ratelimit-limit']).toBe('100');
-            expect(parseInt(res.headers['x-ratelimit-remaining'])).toBeLessThanOrEqual(100);
-        } finally {
-            // Restore original environment
-            process.env.NODE_ENV = originalEnv;
-        }
+        // Rate limiting headers should not be present in development (skipIf returns true)
+        expect(res.headers['x-ratelimit-limit']).toBeUndefined();
+        expect(res.headers['x-ratelimit-remaining']).toBeUndefined();
     });
 });
 
@@ -74,8 +79,19 @@ describe('Rate Limiting (Production Environment)', () => {
         }).compile();
 
         app = moduleFixture.createNestApplication();
-        app.use(helmet(helmetConfig));
-        app.enableCors(corsConfig);
+
+        // Apply security middleware using ConfigService (same as main.ts)
+        const configService = app.get(ConfigService);
+        const helmetConfig = configService.getOrThrow<AppConfig['helmet']>('helmet');
+        const corsConfig = configService.getOrThrow<AppConfig['cors']>('cors');
+
+        if (helmetConfig) {
+            app.use(helmet(helmetConfig));
+        }
+        if (corsConfig) {
+            app.enableCors(corsConfig);
+        }
+
         await app.init();
     });
 
@@ -88,7 +104,7 @@ describe('Rate Limiting (Production Environment)', () => {
     it('should have rate limiting enabled in production', async () => {
         const res = await request(app.getHttpServer()).get('/').expect(200);
 
-        // Verify rate limiting is active
+        // Verify rate limiting is active (skipIf returns false in production)
         expect(res.headers['x-ratelimit-limit']).toBeDefined();
         expect(res.headers['x-ratelimit-remaining']).toBeDefined();
         expect(res.headers['x-ratelimit-reset']).toBeDefined();
@@ -98,5 +114,15 @@ describe('Rate Limiting (Production Environment)', () => {
         const remaining = parseInt(res.headers['x-ratelimit-remaining']);
         expect(remaining).toBeLessThan(limit);
         expect(remaining).toBeGreaterThan(0);
+    });
+
+    it('should enable HSTS in production', async () => {
+        const res = await request(app.getHttpServer()).get('/').expect(200);
+
+        // HSTS should be enabled in production
+        expect(res.headers['strict-transport-security']).toBeDefined();
+        expect(res.headers['strict-transport-security']).toMatch(/max-age=31536000/);
+        expect(res.headers['strict-transport-security']).toMatch(/includeSubDomains/);
+        expect(res.headers['strict-transport-security']).toMatch(/preload/);
     });
 });
