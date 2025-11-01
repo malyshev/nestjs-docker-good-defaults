@@ -11,8 +11,10 @@ async function bootstrap(): Promise<void> {
         bufferLogs: true, // Buffer logs until Pino logger is ready
     });
 
+    const logger = app.get(Logger);
+
     // Use Pino logger - replaces default NestJS logger
-    app.useLogger(app.get(Logger));
+    app.useLogger(logger);
 
     // Get ConfigService instance
     const configService = app.get(ConfigService);
@@ -21,12 +23,16 @@ async function bootstrap(): Promise<void> {
     const helmetConfig = configService.getOrThrow<AppConfig['helmet']>('helmet');
 
     // Apply security middleware - uses merged config via ConfigService
-    // Config is required - app will fail to start if missing (secure by default)
+    // Config is required - the app will fail to start if missing (secure by default)
     app.use(helmet(helmetConfig));
     app.enableCors(corsConfig);
 
     // Start application on configured port
     await app.listen(appConfig.port);
+
+    // Log application startup with accessible URL
+    const appLink = `http://localhost:${appConfig.port}`;
+    logger.log(`Application started at ${appLink}`);
 }
 
 bootstrap().catch((error: Error) => {

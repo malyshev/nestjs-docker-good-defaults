@@ -135,6 +135,61 @@ throttle: {
 },
 ```
 
+### Logging Configuration
+
+Pino logging is configured in `src/config/*.config.ts` files:
+
+- **Base logging**: Configured for all NestJS app types (HTTP, microservices, workers, etc.)
+- **Development**: Pretty printing enabled for readable terminal output, debug level
+- **Production**: Structured JSON logs compatible with Grafana Loki/Promtail stack
+- **Environment-aware**: Log level and format adapt to environment
+- **HTTP request logging**: Disabled by default (can be added via interceptor later if needed)
+
+Configuration options:
+
+- **Log level**: `trace`, `debug`, `info`, `warn`, `error`, `fatal`
+  - Override via `LOG_LEVEL` environment variable
+  - Development default: `debug`
+  - Production default: `info`
+
+- **Pretty printing**: Human-readable formatted logs (development only)
+  - Override via `LOG_PRETTY` environment variable (`true`/`false`)
+  - Development default: `true`
+  - Production default: `false` (structured JSON)
+
+Example: Configure logging in `src/config/default.config.ts`:
+
+```typescript
+logging: {
+    level: configService.get<string>('LOG_LEVEL', 'info'),
+    prettyPrint: configService.get<boolean>('LOG_PRETTY', false),
+},
+```
+
+Using the logger in your services:
+
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+
+@Injectable()
+export class MyService {
+  private readonly logger = new Logger(MyService.name);
+
+  doSomething() {
+    this.logger.log('Starting operation');
+    this.logger.debug('Debug information');
+    this.logger.warn('Warning message');
+    this.logger.error('Error occurred', error.stack);
+  }
+}
+```
+
+**Grafana Stack Integration**: Production logs use structured JSON format, making them compatible with:
+
+- **Promtail**: Collects logs from containers/files
+- **Loki**: Aggregates and indexes logs
+- **Grafana**: Visualizes logs and metrics
+
 ## Application Configuration
 
 ### Environment Variables
@@ -150,6 +205,8 @@ Key variables:
 - `ALLOWED_METHODS` - CORS methods (comma-separated)
 - `THROTTLE_TTL` - Rate limit time window (milliseconds)
 - `THROTTLE_LIMIT` - Maximum requests per time window
+- `LOG_LEVEL` - Logging level (trace, debug, info, warn, error, fatal)
+- `LOG_PRETTY` - Enable pretty printing (true/false)
 
 ### Environment-Specific Configuration
 
