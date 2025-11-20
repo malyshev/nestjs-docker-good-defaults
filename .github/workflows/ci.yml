@@ -110,7 +110,7 @@ jobs:
       - name: Quick build check
         run: npm run build
 
-  # Main branch specific jobs (full CI with additional checks)
+  # Main branch-specific jobs (full CI with additional checks)
   main-ci:
     name: Main Branch CI
     runs-on: ubuntu-latest
@@ -119,6 +119,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -135,6 +137,38 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level moderate
 
-      # Future: Add release automation jobs here
-      # - name: Prepare release
-      #   run: echo "Release automation will be added in Milestone 7"
+      - name: Bump version and create tag
+        id: tag
+        uses: anothrNick/github-tag-action@1.75.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          WITH_V: true
+          RELEASE_BRANCHES: main,master
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ steps.tag.outputs.tag }}
+            type=raw,value=latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          build-args: |
+            VERSION=${{ steps.tag.outputs.tag }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

@@ -49,15 +49,29 @@ Tasks:
 **Goal:** Manage configuration and logging consistently across environments.
 Tasks:
 
-- [ ] @nestjs/config integration – environment variable management
-- [ ] Config directory structure – organize configuration for different environments (dev, test, prod)
-- [ ] Logging setup (pino) with structured formatting
-- [ ] Logging configuration – log levels, formats, and transports for different environments
-- [ ] Request logging middleware – log HTTP requests and responses
+- [x] @nestjs/config integration – environment variable management
+- [x] Config directory structure – organize configuration for different environments (dev, test, prod)
+- [x] Logging setup (pino) with structured formatting
+- [x] Logging configuration – log levels, formats, and transports for different environments
+- [x] Request logging middleware – log HTTP requests and responses (base Pino config, can be extended with interceptor)
 
 **Priority:** high; configuration and logging are essential for production applications
+**Status:** ✅ COMPLETED
 
-## Milestone 5: Validation
+## Milestone 5: Automated Releases
+
+**Goal:** Automate versioning, tagging, and Docker image publishing.
+Tasks:
+
+- [x] Automatic version bumping using conventional commits (feat: = minor, fix: = patch, BREAKING = major)
+- [x] Automatic git tag creation and push on merge to main/master
+- [x] Docker image build with version and build date metadata
+- [x] Publish to GitHub Container Registry (GHCR) with version tag and latest tag
+
+**Priority:** high; essential for continuous deployment workflow
+**Status:** ✅ COMPLETED
+
+## Milestone 6: Validation
 
 **Goal:** Enable request validation using class-validator/class-transformer patterns.
 Tasks:
@@ -68,19 +82,18 @@ Tasks:
 
 **Priority:** high; consistent validation approach across the application
 
-## Milestone 6: Observability & Automation
+## Milestone 7: Observability & Health Monitoring
 
-**Goal:** Enhance observability with health monitoring and automate releases.
+**Goal:** Enhance observability with health monitoring.
 Tasks:
 
 - [ ] Install and configure @nestjs/terminus for proper health endpoints
 - [ ] Create /health endpoint with database, Redis, and service checks
 - [ ] Hooks for external monitoring tools
-- [ ] Automated releases
 
 **Priority:** lower; implement after core DX is stable
 
-## Milestone 7: Optional / Advanced Enhancements
+## Milestone 8: Optional / Advanced Enhancements
 
 **Goal:** Elevate template to "best-of-breed DX" level.
 Tasks:
