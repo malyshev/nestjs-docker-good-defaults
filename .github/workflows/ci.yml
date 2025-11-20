@@ -1,38 +1,78 @@
+# CI/CD workflow for NestJS application
+# This workflow runs automated checks, tests, builds, and releases on code changes.
 name: CI
 
+# Workflow triggers - when this workflow runs
+# Triggers on push to main/master branches and on pull requests targeting these branches
+# This ensures all code changes are validated before merging
 on:
   push:
     branches: [main, master]
   pull_request:
     branches: [main, master]
 
+# Permissions required for this workflow
+# GitHub Actions uses a default GITHUB_TOKEN with limited permissions for security
+# We need to explicitly grant permissions for operations that modify the repository
 permissions:
+  # contents: write - Required for creating and pushing git tags during releases
+  # Without this, the workflow cannot create version tags (e.g., v1.0.0)
   contents: write
+  # packages: write - Required for pushing Docker images to GitHub Container Registry (GHCR)
+  # Without this, the workflow cannot publish images to ghcr.io
   packages: write
 
+# --------------------------------------------------------------------------------------
+# Jobs: Independent tasks that run in parallel or sequence
+# Each job runs on a fresh virtual machine (runner) and can have multiple steps
+# --------------------------------------------------------------------------------------
+
 jobs:
+  # Lint job: Validates code style and formatting
+  # Runs on every push and pull request to catch code style issues early
+  # This job runs in parallel with other jobs for faster feedback
   lint:
     name: Lint & Format Check
+    # Run on GitHub-hosted Ubuntu runner (free for public repos, included minutes for private)
     runs-on: ubuntu-latest
     steps:
+      # Checkout the repository code to the runner
+      # This makes your code available in the workflow environment
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Setup Node.js runtime environment
+      # This installs Node.js version 22 and makes npm available
+      # cache: 'npm' enables dependency caching to speed up subsequent runs
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          # Cache npm dependencies - speeds up workflow by reusing node_modules
+          # Cache is keyed by package-lock.json hash, so it updates automatically when deps change
           cache: 'npm'
 
+      # Install dependencies exactly as specified in package-lock.json
+      # npm ci is faster and more reliable than npm install for CI environments
+      # It ensures reproducible builds by installing exact versions from lockfile
       - name: Install dependencies
         run: npm ci
 
+      # Run ESLint to check code quality and catch potential bugs
+      # ESLint validates TypeScript/JavaScript code against configured rules
+      # Fails the workflow if code doesn't meet quality standards
       - name: Run ESLint
         run: npm run lint
 
+      # Check if code is formatted according to Prettier rules
+      # Prettier ensures consistent code formatting across the project
+      # format:check only validates, doesn't modify files (unlike format which fixes)
       - name: Check Prettier formatting
         run: npm run format:check
 
+  # Test job: Runs all tests and generates coverage reports
+  # Ensures code changes don't break existing functionality
+  # Runs in parallel with lint and build jobs for faster feedback
   test:
     name: Test Suite
     runs-on: ubuntu-latest
@@ -49,12 +89,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Run unit tests with code coverage reporting
+      # Unit tests verify individual functions/modules work correctly in isolation
+      # Coverage shows which code is tested (target: 80% coverage threshold)
+      # test:cov generates coverage/lcov.info file used by coverage services
       - name: Run unit tests with coverage
         run: npm run test:cov
 
+      # Run end-to-end (e2e) tests
+      # E2E tests verify the entire application works correctly from user's perspective
+      # These tests start the full application and test HTTP endpoints
+      # Catches integration issues that unit tests might miss
       - name: Run e2e tests
         run: npm run test:e2e
 
+      # Upload coverage reports to Codecov service
+      # Codecov provides coverage visualization and tracks coverage over time
+      # Only uploads if tests pass (if: success()) to avoid uploading failed test data
+      # Coverage reports help identify untested code and maintain quality standards
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
         if: success()
@@ -63,6 +115,9 @@ jobs:
           flags: unittests
           name: codecov-umbrella
 
+  # Build job: Compiles TypeScript code and verifies the build succeeds
+  # Ensures code can be compiled without errors before deployment
+  # Catches TypeScript compilation errors and build configuration issues
   build:
     name: Build Verification
     runs-on: ubuntu-latest
@@ -79,9 +134,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Build the application (TypeScript -> JavaScript)
+      # Compiles source code from src/ to dist/ directory
+      # This is the same build process used in production
+      # Fails if there are TypeScript errors or build configuration issues
       - name: Build application
         run: npm run build
 
+      # Verify that the build actually produced output
+      # Checks that dist/ directory exists and contains compiled code
+      # Prevents silent build failures where build command succeeds but produces no output
       - name: Verify build output
         run: |
           if [ ! -d "dist" ]; then
@@ -90,10 +152,15 @@ jobs:
           fi
           echo "Build successful: dist directory created"
 
-  # Feature branch specific jobs (lighter CI for faster feedback)
+  # Feature branch CI: Lightweight checks for pull requests
+  # Runs only on pull requests (not on direct pushes to main/master)
+  # Provides faster feedback for feature branches by skipping full test suite
+  # Full tests run in parallel jobs, so this is just a quick validation
   feature-ci:
     name: Feature Branch CI
     runs-on: ubuntu-latest
+    # Only run this job when the workflow is triggered by a pull request
+    # This avoids running duplicate checks since main-ci handles main branch pushes
     if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
@@ -108,23 +175,41 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Quick lint check to catch code style issues early
+      # Faster than full CI but still catches most common issues
       - name: Quick lint check
         run: npm run lint
 
+      # Quick build check to ensure code compiles
+      # Verifies TypeScript compiles without errors before merge
       - name: Quick build check
         run: npm run build
 
-  # Main branch-specific jobs (full CI with additional checks)
+  # Main branch CI: Full validation and automated release
+  # Runs only when code is merged to main/master branch
+  # Performs additional security checks and triggers automated releases
+  # This is the final gate before code goes to production
   main-ci:
     name: Main Branch CI
     runs-on: ubuntu-latest
+    # Only run when code is pushed directly to main or master branch
+    # This includes merges from pull requests and direct pushes
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    # Wait for lint, test, and build jobs to complete successfully
+    # This ensures all quality checks pass before running release automation
     needs: [lint, test, build]
     steps:
+      # Checkout code with full git history and tags
+      # fetch-depth: 0 downloads all commits and tags (required for version calculation)
+      # token is required to have write permissions for creating tags later
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          # Fetch all git history and tags - needed for version bumping logic
+          # Without this, the version action can't see previous tags to calculate next version
           fetch-depth: 0
+          # Provide token with write permissions for tag creation
+          # GITHUB_TOKEN is automatically provided by GitHub Actions
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
@@ -136,44 +221,105 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Run full test suite with coverage on main branch
+      # This is a redundant check but ensures tests pass in the final environment
+      # Coverage helps track test quality over time
       - name: Full test suite with coverage
         run: npm run test:cov
 
+      # Security audit: Check for known vulnerabilities in dependencies
+      # Scans package-lock.json against npm security advisories
+      # --audit-level moderate fails if moderate+ severity issues are found
+      # This helps prevent deploying code with known security vulnerabilities
       - name: Security audit
         run: npm audit --audit-level moderate
 
+      # --------------------------------------------------------------------------------------
+      # Release Automation: Automatic versioning and Docker image publishing
+      # --------------------------------------------------------------------------------------
+      # This section automatically creates git tags and publishes Docker images
+      # when code is merged to main/master branch
+
+      # Bump version and create git tag based on conventional commits
+      # Analyzes commit messages since last tag to determine version increment:
+      #   - feat: → minor version bump (1.0.0 → 1.1.0)
+      #   - fix: → patch version bump (1.0.0 → 1.0.1)
+      #   - BREAKING CHANGE or ! → major version bump (1.0.0 → 2.0.0)
+      # Creates and pushes a new git tag (e.g., v1.0.1) to the repository
+      # DEFAULT_BUMP: patch means if no conventional commits found, bump patch version
+      # WITH_V: true adds 'v' prefix to tags (v1.0.1 instead of 1.0.1)
       - name: Bump version and create tag
         id: tag
         uses: anothrNick/github-tag-action@1.75.0
         env:
+          # GITHUB_TOKEN is required for the action to create and push tags
+          # This token is automatically provided by GitHub Actions
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Default version bump if no conventional commits detected
           DEFAULT_BUMP: patch
+          # Add 'v' prefix to version tags (e.g., v1.0.1)
           WITH_V: true
+          # Only create tags when merging to these branches
           RELEASE_BRANCHES: main,master
 
+      # Authenticate with GitHub Container Registry (GHCR)
+      # GHCR is GitHub's Docker image registry (similar to Docker Hub)
+      # Images are stored at ghcr.io/OWNER/REPO:VERSION
+      # Authentication is required to push images
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
+          # GitHub Container Registry URL
           registry: ghcr.io
+          # Repository owner (your GitHub username or organization)
           username: ${{ github.repository_owner }}
+          # Use GitHub token for authentication (automatically provided)
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Extract Docker image metadata and generate tags
+      # This step prepares the image tags that will be applied to the Docker image
+      # Creates two tags: version tag (1.0.1) and latest tag
+      # The latest tag always points to the most recent release
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
+          # Base image name: ghcr.io/OWNER/REPO
+          # github.repository contains "OWNER/REPO" format
           images: ghcr.io/${{ github.repository }}
           tags: |
+            # Version tag: specific version (e.g., 1.0.1)
+            # Used to pin to a specific release version
             type=raw,value=${{ steps.tag.outputs.tag }}
+            # Latest tag: always points to most recent release
+            # Used for "always get the newest version" scenarios
             type=raw,value=latest
 
+      # Build Docker image and push to GitHub Container Registry
+      # This creates a production-ready Docker image from your Dockerfile
+      # The image is tagged with both version and latest tags
+      # push: true publishes the image to GHCR (set to false for testing)
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          # Build context: directory containing Dockerfile
+          # . means current directory (repository root)
           context: .
+          # Push image to registry after successful build
+          # Set to false if you only want to build without pushing
           push: true
+          # Build arguments passed to Dockerfile
+          # These are available as ARG variables in Dockerfile
           build-args: |
+            # VERSION: Version number for image metadata (e.g., 1.0.1)
+            # Used in Dockerfile LABEL for tracking which version is in the image
             VERSION=${{ steps.tag.outputs.tag }}
+            # BUILD_DATE: Timestamp when image was built
+            # Used for audit trail and debugging
             BUILD_DATE=${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
+          # Image tags to apply (from metadata step above)
+          # Image will be available as both ghcr.io/OWNER/REPO:1.0.1 and ghcr.io/OWNER/REPO:latest
           tags: ${{ steps.meta.outputs.tags }}
+          # Image labels for metadata (automatically generated by metadata action)
+          # Includes labels like org.opencontainers.image.version, org.opencontainers.image.created
           labels: ${{ steps.meta.outputs.labels }}
